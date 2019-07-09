@@ -1,0 +1,25 @@
+<aura:component implements="flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes"
+                access="global"
+                controller="FileDrive">
+
+    <!-- <aura:attribute name="LOGIN" type="String" default="alexey.sachevichik@succraft.com"/>
+    <aura:attribute name="CLIENT_ID" type="String" default="x4p9w9oelywkgp11xatwpzh1910r1jut"/>
+    <aura:attribute name="REDIRECT_URI" type="String" default="https://file-drive-developer-edition.ap8.force.com/main/s/"/>
+    <aura:attribute name="CLIENT_SECRET" type="String" default="H8KsO5vFmUxr9sA1OSnhWb4jfdH5Z3DZ"/> -->
+    <!-- <aura:attribute name="PRIMARY_ACCESS_TOKEN" type="String" default="lFErm2GWM16JRB7iVnCYoahm0mGTGAVV"/> -->
+
+    <!-- Handlers -->
+    <aura:handler name="init" value="{! this }" action="{! c.init }"/>
+
+
+    <div class="page__wrapper">
+        <!-- <lightning:input name="boxLogin" label="Box Login" value="{! v.LOGIN }"/>
+        <lightning:input name="clientId" label="Client ID" value="{! v.CLIENT_ID }"/>
+        <lightning:input name="redirectURI" label="Redirect URI" value="{! v.REDIRECT_URI }"/>
+        <lightning:input name="clientSecret" label="Client Secret" value="{! v.CLIENT_SECRET }"/> -->
+        <!-- <lightning:input name="primaryAccessToken" label="Primary Access Token" value="{! v.PRIMARY_ACCESS_TOKEN }"/> -->
+
+        <lightning:button label="Connect to box" title="Connect to box" onclick="{! c.handleClickConnectToBox }"/>
+    </div>
+
+</aura:component>
