@@ -2,24 +2,40 @@
                 access="global"
                 controller="FileDrive">
 
-    <!-- <aura:attribute name="LOGIN" type="String" default="alexey.sachevichik@succraft.com"/>
-    <aura:attribute name="CLIENT_ID" type="String" default="x4p9w9oelywkgp11xatwpzh1910r1jut"/>
-    <aura:attribute name="REDIRECT_URI" type="String" default="https://file-drive-developer-edition.ap8.force.com/main/s/"/>
-    <aura:attribute name="CLIENT_SECRET" type="String" default="H8KsO5vFmUxr9sA1OSnhWb4jfdH5Z3DZ"/> -->
-    <!-- <aura:attribute name="PRIMARY_ACCESS_TOKEN" type="String" default="lFErm2GWM16JRB7iVnCYoahm0mGTGAVV"/> -->
+    <!-- https://file-drive-dev-ed.lightning.force.com/c/FDApp.app -->
+
+    <aura:attribute name="isLoadingCredential" type="Boolean" default="true"/>
+
+    <aura:attribute name="entries" type="List"/>
 
     <!-- Handlers -->
     <aura:handler name="init" value="{! this }" action="{! c.init }"/>
 
+    <aura:renderIf isTrue="{! v.isLoadingCredential }">
+        <lightning:spinner alternativeText="Loading" size="medium" />
+        <aura:set attribute="else">
+            <div class="page__wrapper">
+                <lightning:button label="Connect to box" title="Connect to box" onclick="{! c.handleClickConnectToBox }"/>
+                <lightning:button label="Get folder information" title="Get folder information" onclick="{! c.handleClickgetRootInformation }"/>
+                <div class="list-files__wrapper">
+                    <aura:iteration items="{! v.entries }" var="item">
+                        <div class="item">
+                            <div class="icon">
+                                <aura:renderIf isTrue="{! item.type == 'folder' }">
+                                    <lightning:icon iconName="standard:folder" alternativeText="Folder" />
+                                </aura:renderIf>
+                                <aura:renderIf isTrue="{! item.type == 'file' }">
+                                    <lightning:icon iconName="standard:file" alternativeText="Folder" />
+                                </aura:renderIf>
+                            </div>
+                            <div class="name">{! item.name }</div>
+                        </div>
+                    </aura:iteration>
+                </div>
+            </div>
+        </aura:set>
+    </aura:renderIf>
 
-    <div class="page__wrapper">
-        <!-- <lightning:input name="boxLogin" label="Box Login" value="{! v.LOGIN }"/>
-        <lightning:input name="clientId" label="Client ID" value="{! v.CLIENT_ID }"/>
-        <lightning:input name="redirectURI" label="Redirect URI" value="{! v.REDIRECT_URI }"/>
-        <lightning:input name="clientSecret" label="Client Secret" value="{! v.CLIENT_SECRET }"/> -->
-        <!-- <lightning:input name="primaryAccessToken" label="Primary Access Token" value="{! v.PRIMARY_ACCESS_TOKEN }"/> -->
-
-        <lightning:button label="Connect to box" title="Connect to box" onclick="{! c.handleClickConnectToBox }"/>
-    </div>
+    
 
 </aura:component>

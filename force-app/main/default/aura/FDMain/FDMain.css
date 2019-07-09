@@ -1,2 +1,23 @@
-.THIS {
+.THIS .list-files__wrapper {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.THIS .list-files__wrapper .item {
+    width: 125px;
+    margin: 10px;
+    padding: 20px;
+    border: 1px solid #eeeeee;
+    cursor: pointer;
+}
+
+.THIS .list-files__wrapper .item .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.THIS .list-files__wrapper .item .name {
+    text-align: center;    
 }
