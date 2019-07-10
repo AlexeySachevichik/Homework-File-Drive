@@ -55,13 +55,13 @@
         action.setParams({authorizationCode});
         action.setCallback(this, function(response) {
             if (response.getState() === 'SUCCESS') {
-                this.checkStatusToken(component, response.getReturnValue(), authorizationCode);
+                this.saveCredential(component, response.getReturnValue(), authorizationCode);
             }
         });
         $A.enqueueAction(action);
     },
     
-    checkStatusToken: function(component, response, authorizationCode) {
+    saveCredential: function(component, response, authorizationCode) {
         var result = JSON.parse(response);
         if (result.access_token && result.expires_in && result.refresh_token && result.token_type) {
             var action = component.get('c.saveCredential');
@@ -83,25 +83,70 @@
         }
     },
 
-    checkToken: function(component) {
-        component.set('v.isLoadingCredential', false);
-        console.log('credential exist, check it');
-        // обновим токен
+    getFolderInfo: function(component, folderId) {
+        component.set('v.isLoadingCredential', true);
+        var action = component.get('c.getFoldersInfo');
+        action.setParams({folderId});
+        action.setCallback(this, function(response) {
+            if (response.getState() === 'SUCCESS') {
+                var result = response.getReturnValue();
+                if (result == '401') {
+                    this.refreshToken(component);
+                } else {
+                    this.showFolder(component, result);
+                }
+            }
+        });
+        $A.enqueueAction(action);
     },
 
-    // getFoldersInfo: function(component, folderId) {
-    //     var action = component.get('c.getFoldersInfo');
-    //     action.setParams({folderId});
-    //     action.setCallback(this, function(response) {
-    //         if (response.getState() === 'SUCCESS') {
-    //             var result = JSON.parse(response.getReturnValue());
-    //             console.log(result);
+    checkToken: function(component) {
+        this.getFolderInfo(component, '0');
+    },
 
-    //             if (result.item_collection && result.item_collection.entries && result.item_collection.entries.length > 0) {
-    //                 component.set('v.entries', result.item_collection.entries);
-    //             }
-    //         }
-    //     });
-    //     $A.enqueueAction(action);
-    // },
+    refreshToken: function(component) {
+        var action = component.get('c.refreshToken');
+        action.setCallback(this, function(response) {
+            if (response.getState() === 'SUCCESS') {
+                var result = response.getReturnValue();
+                if (result == 'ERROR' || result == '400') {
+                    this.eventNavigateToAuthorizationPage(component);
+                } else {
+                    this.saveCredential(component, result, '');
+                }
+            }
+        });
+        $A.enqueueAction(action);
+    },
+
+    showFolder: function(component, result) {
+        var folderInfo = JSON.parse(result);
+        console.log(folderInfo);
+        component.set('v.folderName', folderInfo.name);
+        this.getFoldersItems(component, folderInfo.id);
+        
+    },
+
+    getFoldersItems: function(component, folderId, limit, offset) {
+        var limitCount = limit || 100;
+        var offsetCount = offset || 0;
+
+        var action = component.get('c.getFoldersItems');
+        action.setParams({ folderId, limitCount, offsetCount });
+        action.setCallback(this, function(response) {
+            if (response.getState() === 'SUCCESS') {
+                var result = JSON.parse(response.getReturnValue());
+                console.log(result);
+                if (result.total_count) {
+                    // this.setTotalCount(component, result.total_count);
+                    component.set('v.totalCount', result.total_count);
+                }
+                if (result.entries && result.entries.length > 0) {
+                    component.set('v.entries', result.entries);
+                }
+            }
+            component.set('v.isLoadingCredential', false);
+        });
+        $A.enqueueAction(action);
+    },
 })

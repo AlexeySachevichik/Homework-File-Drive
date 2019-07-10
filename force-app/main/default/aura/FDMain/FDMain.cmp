@@ -5,8 +5,11 @@
     <!-- https://file-drive-dev-ed.lightning.force.com/c/FDApp.app -->
 
     <aura:attribute name="isLoadingCredential" type="Boolean" default="true"/>
-
     <aura:attribute name="entries" type="List"/>
+
+    <!-- Folder information -->
+    <aura:attribute name="folderName" type="String" default="All Files"/>
+    <aura:attribute name="totalCount" type="String" default="0"/>
 
     <!-- Handlers -->
     <aura:handler name="init" value="{! this }" action="{! c.init }"/>
@@ -14,10 +17,26 @@
     <aura:renderIf isTrue="{! v.isLoadingCredential }">
         <lightning:spinner alternativeText="Loading" size="medium" />
         <aura:set attribute="else">
+
             <div class="page__wrapper">
-                <lightning:button label="Connect to box" title="Connect to box" onclick="{! c.handleClickConnectToBox }"/>
-                <lightning:button label="Get folder information" title="Get folder information" onclick="{! c.handleClickgetRootInformation }"/>
-                <div class="list-files__wrapper">
+
+                <div class="title__wrapper">
+                    <div class="folder__name">
+                        <div class="title">{! v.folderName }</div>
+                    </div>
+                </div>
+
+                <div class="content__wrapper">
+                        <div class="table__wrapper">
+                                table__wrapper
+                        </div>
+                        <div class="sidebar__wrapper">
+                                sidebar__wrapper
+                        </div>
+                </div>
+
+
+                <!-- <div class="list-files__wrapper">
                     <aura:iteration items="{! v.entries }" var="item">
                         <div class="item">
                             <div class="icon">
@@ -31,7 +50,8 @@
                             <div class="name">{! item.name }</div>
                         </div>
                     </aura:iteration>
-                </div>
+                </div> -->
+
             </div>
         </aura:set>
     </aura:renderIf>

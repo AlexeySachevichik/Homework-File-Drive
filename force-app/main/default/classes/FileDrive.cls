@@ -52,6 +52,55 @@ public with sharing class FileDrive {
     }
 
     @AuraEnabled
+    public static void saveCredential(String authorizationCode, String accessToken, String expiresIn, String refreshToken, String tokenType) {
+        List<Box_Credential__c> listBoxCredential = [SELECT Id FROM Box_Credential__c];
+        if (listBoxCredential.size() > 0) delete listBoxCredential;
+
+        Box_Credential__c boxCredential = new Box_Credential__c(
+            Name = 'BoxCredential',
+            Login__c = FileDrive.login,
+            Client_Id__c = FileDrive.clientID,
+            Secret_Code__c = FileDrive.secretCode,
+            Redirect_URI__c = FileDrive.redirectURI,
+            Authorization_Code__c = authorizationCode,
+            Access_Token__c = accessToken,
+            Expires_In__c = expiresIn,
+            Refresh_Token__c = refreshToken,
+            Token_Type__c = tokenType
+        );
+
+        insert boxCredential;
+    }
+
+    public static String sendHttpResponse(String endpoint, String authorization, String method) {
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint(endpoint);
+        request.setHeader('Authorization', authorization);
+        request.setMethod(method);
+        HttpResponse response = http.send(request);
+
+        if (response.getStatusCode() == 200) {
+            return response.getBody();
+        } else {
+            return String.valueOf(response.getStatusCode());
+        }
+    }
+
+    @AuraEnabled
+    public static String getFoldersInfo(String folderId) {
+        Box_Credential__c boxCredential = FileDrive.getCredential();
+        if (boxCredential.Token_Type__c != null && boxCredential.Access_Token__c != null) {
+            return FileDrive.sendHttpResponse(
+                'https://api.box.com/2.0/folders/' + folderId,
+                boxCredential.Token_Type__c + ' ' + boxCredential.Access_Token__c,
+                'GET'
+            );
+        }
+        return 'ERROR';
+    }
+
+    @AuraEnabled
     public static String refreshToken() {
         Box_Credential__c boxCredential = FileDrive.getCredential();
         if (boxCredential.Refresh_Token__c != null && boxCredential.Client_Id__c != null && boxCredential.Secret_Code__c != null) {
@@ -68,47 +117,26 @@ public with sharing class FileDrive {
             );
             request.setMethod('POST');
             HttpResponse response = http.send(request);
-            return response.getBody();
+
+            if (response.getStatusCode() == 200) {
+                return response.getBody();
+            } else {
+                return String.valueOf(response.getStatusCode());
+            }
         }
         return 'ERROR'; 
     }
 
     @AuraEnabled
-    public static void saveCredential(String authorizationCode, String accessToken, String expiresIn, String refreshToken, String tokenType) {
-        List<Box_Credential__c> listBoxCredential = [SELECT Id FROM Box_Credential__c];
-        if (listBoxCredential.size() > 0) delete listBoxCredential;
-        
-        Box_Credential__c boxCredential = new Box_Credential__c(
-            Name = 'BoxCredential',
-            Login__c = FileDrive.login,
-            Client_Id__c = FileDrive.clientID,
-            Secret_Code__c = FileDrive.secretCode,
-            Redirect_URI__c = FileDrive.redirectURI,
-            Authorization_Code__c = authorizationCode,
-            Access_Token__c = accessToken,
-            Expires_In__c = expiresIn,
-            Refresh_Token__c = refreshToken,
-            Token_Type__c = tokenType
-        );
-        insert boxCredential;
+    public static String getFoldersItems(String folderId, Integer limitCount, Integer offsetCount) {
+        Box_Credential__c boxCredential = FileDrive.getCredential();
+        if (boxCredential.Token_Type__c != null && boxCredential.Access_Token__c != null) {
+            return FileDrive.sendHttpResponse(
+                'https://api.box.com/2.0/folders/' + folderId + '/items?limit=' + limitCount + '&offset=' + offsetCount,
+                boxCredential.Token_Type__c + ' ' + boxCredential.Access_Token__c,
+                'GET'
+            );
+        }
+        return 'ERROR';
     }
-
-    // public static String sendHttpResponse(String endpoint, String authorization, String method) {
-    //     Http http = new Http();
-    //     HttpRequest request = new HttpRequest();
-    //     request.setEndpoint(endpoint);
-    //     request.setHeader('Authorization', authorization);
-    //     request.setMethod(method);
-    //     HttpResponse response = http.send(request);
-    //     return response.getBody();
-    // }
-
-    // @AuraEnabled
-    // public static String getFoldersInfo(String folderId, String tokenType, String accessToken) {
-    //     return FileDrive.sendHttpResponse(
-    //         'https://api.box.com/2.0/folders/' + folderId,
-    //         tokenType.substring(0,1).toUpperCase() + tokenType.substring(1).toLowerCase() + ' ' + accessToken,
-    //         'GET'
-    //     );
-    // }
 }

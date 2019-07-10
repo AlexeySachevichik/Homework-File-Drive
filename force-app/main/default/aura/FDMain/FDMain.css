@@ -1,3 +1,27 @@
+.THIS.page__wrapper {
+    padding: 16px;
+}
+
+.THIS.page__wrapper .title__wrapper {
+    margin-bottom: 16px;
+}
+
+.THIS.page__wrapper .title__wrapper .folder__name .title {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.THIS.page__wrapper .content__wrapper {
+    display: grid;
+    grid-template-columns: auto 300px;
+}
+
+.THIS.page__wrapper .content__wrapper .sidebar__wrapper{
+    padding-left: 16px;
+}
+
+
+
 .THIS .list-files__wrapper {
     display: flex;
     flex-wrap: wrap;
