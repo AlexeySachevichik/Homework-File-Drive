@@ -8,54 +8,163 @@
     <aura:attribute name="entries" type="List"/>
 
     <!-- Folder information -->
-    <aura:attribute name="folderName" type="String" default="All Files"/>
+    <aura:attribute name="folderInfo" type="Object"/>
+    <aura:attribute name="pathCollection" type="List"/>
     <aura:attribute name="totalCount" type="String" default="0"/>
+    <aura:attribute name="ownerBy" type="String"/>
+    <aura:attribute name="folderSize" type="String"/>
+    
+    <!-- File information -->
+    <aura:attribute name="isFileInformation" type="Boolean" default="false"/>
+    <aura:attribute name="fileInfo" type="Object"/>
+
+    <!-- Table -->
+    <aura:attribute name="isLoadingTable" type="Boolean" default="true"/>
+
+    <!-- Modal -->
+    <aura:attribute name="isShowModalAddFolder" type="Boolean" default="false"/>
+    <aura:attribute name="inputNewFolderName" type="String" default=""/>
+    <aura:attribute name="isDisabledButtonNewFolderSave" type="Boolean" default="ture"/>
 
     <!-- Handlers -->
     <aura:handler name="init" value="{! this }" action="{! c.init }"/>
 
+    <!-- Page -->
     <aura:renderIf isTrue="{! v.isLoadingCredential }">
         <lightning:spinner alternativeText="Loading" size="medium" />
         <aura:set attribute="else">
 
             <div class="page__wrapper">
 
+                <!-- Title -->
                 <div class="title__wrapper">
                     <div class="folder__name">
-                        <div class="title">{! v.folderName }</div>
+                        <div class="title">{! v.folderInfo.name }</div>
                     </div>
                 </div>
 
                 <div class="content__wrapper">
-                        <div class="table__wrapper">
-                                table__wrapper
+
+                    <!-- Table wrapper-->
+                    <div class="table__wrapper">
+
+                        <!-- Spiner -->
+                        <aura:renderIf isTrue="{! v.isLoadingTable }">
+                            <lightning:spinner alternativeText="Loading" size="medium" />
+                        </aura:renderIf>
+
+                        <!-- Breadcrumbs -->
+                        <div class="breadcrumbs">
+                            <ul>
+                                <aura:renderIf isTrue="{! v.pathCollection.length > 0 }">
+                                    <aura:iteration items="{! v.pathCollection }" var="item">
+                                        <li data-id="{! item.id }" onclick="{! c.handleClickOnBreadCrumb }">{! item.name }</li>
+                                    </aura:iteration>
+                                </aura:renderIf>
+                                <li data-id="{! v.folderInfo.id }">{! v.folderInfo.name }</li>
+                            </ul>
                         </div>
-                        <div class="sidebar__wrapper">
-                                sidebar__wrapper
+
+                        <!-- Table -->
+                        <div class="table">
+                            <table>
+                                <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Updated</th></tr></thead>
+                                <tbody>
+                                    
+                                    <!-- Navigate to parent folder -->
+                                    <aura:renderIf isTrue="{! and(v.folderInfo.parent, v.folderInfo.parent.id) }">
+                                        <tr data-id="{! v.folderInfo.parent.id }" data-type="folder" onclick="{! c.handleClickOnRow }">
+                                            <td>..</td><td></td><td></td><td></td>
+                                        </tr>
+                                    </aura:renderIf>
+
+                                    <!-- List of entries -->
+                                    <aura:iteration items="{! v.entries }" var="item">
+                                        <tr data-id="{! item.id }" data-type="{! item.type }" onclick="{! c.handleClickOnRow }">
+                                            <td>{! item.name }</td>
+                                            <td>{! item.type }</td>
+                                            <td>{! item.size }</td>
+                                            <td>
+                                                <lightning:formattedDateTime
+                                                    value="{! item.content_modified_at }"
+                                                    year="numeric"
+                                                    month="numeric"
+                                                    day="numeric"
+                                                    hour="2-digit"
+                                                    minute="2-digit"
+                                                    hour12="false"/>
+                                                {! ', by ' + item.modified_by.name }</td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="sidebar__wrapper">
+
+                        <div class="action__button">
+                            <button class="new__folder" onclick="{! c.handleClickCreateNewFolder }">Create folder</button>
+                        </div>
+
+                        <p class="title">Folder information</p>
+                        <p>Total count: {! v.folderInfo.item_collection.total_count }</p>
+                        <p>Owner by: {! v.folderInfo.owned_by.name }</p>
+                        <p>Size: {! v.folderInfo.size }</p>
+
+                        <aura:renderIf isTrue="{! v.isFileInformation }">
+                            <p class="title">File information</p>
+                            <p>Owner by: {! v.fileInfo.owned_by.name }</p>
+                            <p>Size: {! v.fileInfo.size }</p>
+                            <p>Created by: {! v.fileInfo.created_by.name }</p>
+                            <p>Created date: <lightning:formattedDateTime value="{! v.fileInfo.created_at }" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="false"/></p>
+                            <p>Modified by: {! v.fileInfo.modified_by.name }</p>
+                            <p>Modified date: <lightning:formattedDateTime value="{! v.fileInfo.modified_at }" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="false"/></p>
+                        </aura:renderIf>
+
+                    </div>
                 </div>
-
-
-                <!-- <div class="list-files__wrapper">
-                    <aura:iteration items="{! v.entries }" var="item">
-                        <div class="item">
-                            <div class="icon">
-                                <aura:renderIf isTrue="{! item.type == 'folder' }">
-                                    <lightning:icon iconName="standard:folder" alternativeText="Folder" />
-                                </aura:renderIf>
-                                <aura:renderIf isTrue="{! item.type == 'file' }">
-                                    <lightning:icon iconName="standard:file" alternativeText="Folder" />
-                                </aura:renderIf>
-                            </div>
-                            <div class="name">{! item.name }</div>
-                        </div>
-                    </aura:iteration>
-                </div> -->
 
             </div>
         </aura:set>
     </aura:renderIf>
 
+    <!-- Modal add folder -->
+    <aura:renderIf isTrue="{! v.isShowModalAddFolder }">
+        <div class="modal__wrepper">
+            <div class="modal-content__wrapper">
+                <div class="modal-title">Create New Folder</div>
+                <div class="modal-body">
+                    <input type="text" onkeyup="{! c.handleChangeInputNewFolder }" onchange="{! c.handleChangeInputNewFolder }" maxlength="254"/>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="{! c.handleClickHideModalNewFolder }" class="cancel">Cancel</button>
+                    <button disabled="{! v.isDisabledButtonNewFolderSave }" class="{! v.isDisabledButtonNewFolderSave ? 'disabled' : '' }" onclick="{! c.handleClickModalCreateNewFolder }">Create</button>
+                </div>
+            </div>
+        </div>
+    </aura:renderIf>
     
+        <!-- <div>
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{! c.handleClickHideModalNewFolder }">
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Create New Folder</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <lightning:input name="newFolderName" value="{! v.inputNewFolderName }" label="Enter folder name (Max length 255)" maxlength="254" onchange="{! c.handleChangeInputNewFolder }"/>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick="{! c.handleClickHideModalNewFolder }">Cancel</button>
+                        <button class="slds-button slds-button_brand" disabled="{! v.isDisabledButtonNewFolderSave }">Create</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div> -->
 
 </aura:component>

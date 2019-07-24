@@ -84,7 +84,6 @@
     },
 
     getFolderInfo: function(component, folderId) {
-        component.set('v.isLoadingCredential', true);
         var action = component.get('c.getFoldersInfo');
         action.setParams({folderId});
         action.setCallback(this, function(response) {
@@ -101,6 +100,7 @@
     },
 
     checkToken: function(component) {
+        component.set('v.isLoadingCredential', true);
         this.getFolderInfo(component, '0');
     },
 
@@ -121,31 +121,77 @@
 
     showFolder: function(component, result) {
         var folderInfo = JSON.parse(result);
-        console.log(folderInfo);
-        component.set('v.folderName', folderInfo.name);
-        this.getFoldersItems(component, folderInfo.id);
-        
+        this.setFolderInformation(component, folderInfo);
+        this.getFoldersItems(component, folderInfo.id, 'name,size,content_modified_at,modified_by');
+    },
+    
+    setFolderInformation: function(component, folderInfo) {
+        // console.log(folderInfo);
+        component.set('v.folderInfo', folderInfo);
+        if (folderInfo.path_collection && folderInfo.path_collection.entries && folderInfo.path_collection.entries.length > 0) {
+            component.set('v.pathCollection', folderInfo.path_collection.entries);
+        } else {
+            component.set('v.pathCollection', []);
+        }
+        component.set('v.isLoadingCredential', false);
     },
 
-    getFoldersItems: function(component, folderId, limit, offset) {
+    getFoldersItems: function(component, folderId, fieldsList, limit, offset) {
+        var fields = fieldsList || '';
         var limitCount = limit || 100;
         var offsetCount = offset || 0;
 
         var action = component.get('c.getFoldersItems');
-        action.setParams({ folderId, limitCount, offsetCount });
+        action.setParams({ folderId, limitCount, offsetCount, fields });
         action.setCallback(this, function(response) {
             if (response.getState() === 'SUCCESS') {
                 var result = JSON.parse(response.getReturnValue());
-                console.log(result);
-                if (result.total_count) {
-                    // this.setTotalCount(component, result.total_count);
-                    component.set('v.totalCount', result.total_count);
-                }
-                if (result.entries && result.entries.length > 0) {
-                    component.set('v.entries', result.entries);
+                // console.log(result);
+                component.set('v.entries', result.entries || []);
+            }
+            component.set('v.isLoadingTable', false);
+        });
+        $A.enqueueAction(action);
+    },
+
+    showFileInfo: function(component, id, fieldsList) {
+        var fileId = id || '';
+        var fields = fieldsList || '';
+
+        var action = component.get('c.getFileInfo');
+        action.setParams({ fileId, fields });
+        action.setCallback(this, function(response) {
+            if (response.getState() === 'SUCCESS') {
+                var result = JSON.parse(response.getReturnValue());
+                if (result == 'ERROR' || result == '400') {
+                    console.log('File information does\'nt loading.');
+                } else {
+                    component.set('v.fileInfo', result);
+                    component.set('v.isFileInformation', true);
                 }
             }
-            component.set('v.isLoadingCredential', false);
+            component.set('v.isLoadingTable', false);
+        });
+        $A.enqueueAction(action);
+    },
+
+    hideModalNewFolder: function(component){
+        component.set('v.isShowModalAddFolder', false);
+        component.set('v.isDisabledButtonNewFolderSave', true);
+        component.set('v.inputNewFolderName', '');
+    },
+
+    createNewFolder: function(component, name, parentId) {
+        component.set('v.isLoadingTable', true);
+        var action = component.get('c.createNewFolder');
+        action.setParams({ name, parentId });
+        action.setCallback(this, function(response) {
+            // var result = JSON.parse(response.getReturnValue());
+            // console.log(result);
+            if (response.getState() === 'SUCCESS') {
+                this.hideModalNewFolder(component);
+            }
+            this.getFolderInfo(component, parentId);
         });
         $A.enqueueAction(action);
     },
